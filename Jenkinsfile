@@ -192,6 +192,7 @@ pipeline {
                     sshagent(credentials: ['vps-ssh']) {
                         sh """
                             ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
+                                export KUBECONFIG=/home/kelompok6/.kube/config
                                 echo "📊 POD STATUS:"
                                 kubectl get pods -n taskflow-prod
 
