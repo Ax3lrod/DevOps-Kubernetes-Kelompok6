@@ -8,11 +8,11 @@ pipeline {
     }
     
     environment {
-        PROJECT_DIR = 'pertemuan-09-cicd/pbl-taskflow-go'
+        PROJECT_DIR = '.'
         GOCACHE = "${WORKSPACE}/.cache"
         DATABASE_URL = "postgres://taskflow:taskflow_secret@localhost:5432/taskflow?sslmode=disable"
         // Target repositori Docker Hub kamu
-        DOCKER_IMAGE = "fikriau/taskflow-api"
+        DOCKER_IMAGE = "fikriau/taskflow-api-k8s"
     }
 
     stages {
@@ -166,7 +166,7 @@ pipeline {
                         sh """
                             ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
                                 set -e
-                                cd /home/kelompok6/Devops-CI-CD-Kel-6-Jenkins/pertemuan-09-cicd/pbl-taskflow-go
+                                cd /home/kelompok6/DevOps-Kubernetes-Kelompok6
                                 git pull origin main
                                 docker compose pull
                                 docker compose down
