@@ -19,10 +19,12 @@ spec:
         app: taskflow-api
     spec:
       containers:
-        - name: taskflow-api
-          image: hashicorp/http-echo:latest
-          args:
-            - "-text=Halo dari TaskFlow v2!"
-            - "-listen=:8080"
-          ports:
-            - containerPort: 8080
+      - name: taskflow-api
+        image: fikriau/taskflow-api-k8s:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DATABASE_URL
+          value: "postgres://taskflow:taskflow_secret@10.4.89.175:5433/taskflow?sslmode=disable"
