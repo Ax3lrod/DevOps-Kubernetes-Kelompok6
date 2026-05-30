@@ -153,7 +153,7 @@ pipeline {
             }
         }
         
-        stage('9. Deploy to VPS') {
+        stage('9. Deploy using Kubernetes') {
             when { branch 'main' }
             steps {
                 script {
@@ -167,16 +167,40 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
                                 set -e
                                 cd /home/kelompok6/DevOps-Kubernetes-Kelompok6
-                                git pull origin main
-                                docker compose pull
-                                docker compose down
-                                export IMAGE_TAG=${IMAGE_TAG}
-                                docker compose up -d --force-recreate
+                                kubectl set image deployment/taskflow-api \
+                                taskflow-api=${IMAGE_TAG} \
+                                -n taskflow-prod
+
+                                kubectl rollout status deployment/taskflow-api \
+                                -n taskflow-prod \
+                                --timeout=120s
                             '
                         """
                     }
 
                     echo "✅ Deployment selesai. Aplikasi berjalan di VPS dengan image stable terbaru."
+                }
+            }
+        }
+
+        stage('9.1 Verify Deployment') {
+            when { branch 'main' }
+            steps {
+                script {
+                    echo "🔍 Verifying deployment on VPS..."
+                    sshagent(credentials: ['vps-ssh']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
+                                echo "📊 POD STATUS:"
+                                kubectl get pods -n taskflow-prod
+
+                                echo "📦 IMAGE RUNNING:"
+                                kubectl get deployment taskflow-api -n taskflow-prod \
+                                -o jsonpath="{.spec.template.spec.containers[0].image}"
+                            '
+                        """
+                    }
+                    echo "✅ Deployment verification completed. Aplikasi berjalan dengan image terbaru di VPS."
                 }
             }
         }
