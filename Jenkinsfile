@@ -166,6 +166,7 @@ pipeline {
                         sh """
                             ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
                                 set -e
+                                export KUBECONFIG=/home/kelompok6/.kube/config
                                 cd /home/kelompok6/DevOps-Kubernetes-Kelompok6
                                 kubectl set image deployment/taskflow-api \
                                 taskflow-api=${IMAGE_TAG} \
@@ -178,7 +179,7 @@ pipeline {
                         """
                     }
 
-                    echo "✅ Deployment selesai. Aplikasi berjalan di VPS dengan image stable terbaru."
+                    echo "✅ Deployment selesai."
                 }
             }
         }
@@ -200,7 +201,7 @@ pipeline {
                             '
                         """
                     }
-                    echo "✅ Deployment verification completed. Aplikasi berjalan dengan image terbaru di VPS."
+                    echo "✅ Verifikasi deployment selesai. Pastikan POD berjalan dengan image terbaru."
                 }
             }
         }
