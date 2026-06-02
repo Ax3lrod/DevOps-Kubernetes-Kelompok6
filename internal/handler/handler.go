@@ -38,7 +38,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, model.HealthResponse{
 		Status:    "ok",
-		Service:   "taskflow-api-kubernetes",
+		Service:   "taskflow-api",
 		Version:   version,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	})
