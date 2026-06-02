@@ -78,5 +78,6 @@ type HealthResponse struct {
 	Status    string `json:"status"`
 	Service   string `json:"service"`
 	Version   string `json:"version"`
+	Message  string `json:"message"`
 	Timestamp string `json:"timestamp"`
 }
