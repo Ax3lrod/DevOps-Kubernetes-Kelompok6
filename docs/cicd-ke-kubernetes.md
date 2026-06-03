@@ -5,10 +5,13 @@
 ![alt text](image/image.png)
 
 2. Image yang baru berjalan di Kubernetes setelah proses deploy selesai.
-![alt text](image/image-1.png)
+![alt text](image/image1.png)
 
 3. Tag image terbaru yang sudah terupdate di Docker Hub.
 ![alt text](image/image2.png)
+
+4. Get API ke endpoint health untuk memastikan API sudah berjalan dengan baik setelah deploy.
+![alt text](image/image3.png)
 
 
 ## Alur CI/CD yang Digunakan
