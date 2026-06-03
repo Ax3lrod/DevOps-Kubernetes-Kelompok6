@@ -39,7 +39,7 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, model.HealthResponse{
 		Status:    "ok",
 		Service:   "taskflow-api",
-		Message:  "API is healthy",
+		Message:  "API is running",
 		Version:   version,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	})
