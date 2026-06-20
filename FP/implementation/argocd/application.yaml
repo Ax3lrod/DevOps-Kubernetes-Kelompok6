@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskflow-api-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Ax3lrod/DevOps-Kubernetes-Kelompok6.git'
+    targetRevision: HEAD
+    path: FP/implementation/kubernetes
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true        # Hapus resource yang sudah tidak ada di Git
+      selfHeal: true      # Auto-remedy drift (justifikasi utama dari Paper 1)
+    syncOptions:
+    - CreateNamespace=true
