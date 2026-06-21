@@ -1,0 +1,173 @@
+# =============================================================================
+# Kyverno ClusterPolicies — Kelompok 6 FP DevOps
+# Anggota 3: Andre (Security Policy Specialist)
+#
+# Tiga policy wajib untuk memastikan semua workload yang berjalan di cluster
+# memenuhi standar keamanan minimal sesuai prinsip Policy-as-Code
+# [Sanghi et al., 2025].
+#
+# Cara apply:
+#   kubectl apply -f FP/implementation/kyverno/policies.yaml
+#
+# Cara verifikasi:
+#   kubectl get clusterpolicy
+#   kubectl describe clusterpolicy require-resource-limits
+# =============================================================================
+
+---
+# POLICY 1: Require Resource Limits
+# Justifikasi: Pod tanpa resource limits bisa mengkonsumsi CPU/memori
+# tanpa batas (resource exhaustion), menyebabkan node crash dan
+# mempengaruhi seluruh cluster (noisy neighbor problem).
+# Enforcement ini memastikan setiap container mendefinisikan batas
+# eksplisit sehingga Kubernetes scheduler bisa bekerja optimal.
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require Resource Limits
+    policies.kyverno.io/category: Resource Management
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod, Container
+    policies.kyverno.io/description: >-
+      Setiap container wajib mendefinisikan resource requests dan limits
+      untuk CPU dan memori guna mencegah resource exhaustion di cluster.
+      Tanpa limits, satu pod bermasalah dapat merusak stabilitas seluruh
+      node. Policy ini mengimplementasikan prinsip "least privilege" pada
+      layer resource consumption [Sanghi et al., 2025].
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-resource-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - argocd
+      validate:
+        message: >-
+          Container wajib mendefinisikan resources.requests dan
+          resources.limits untuk cpu dan memory. Contoh:
+          resources.requests.cpu: "100m", resources.limits.memory: "256Mi"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+
+---
+# POLICY 2: Require Non-Root User
+# Justifikasi: Container yang berjalan sebagai root memiliki akses penuh
+# ke sistem file host jika terjadi container escape. Prinsip Zero Trust
+# [Sanghi et al., 2025] mengharuskan setiap entitas hanya mendapat
+# privilege minimal yang diperlukan. runAsNonRoot: true memastikan
+# container tidak bisa memanfaatkan privilege root bahkan jika image-nya
+# dikompromikan.
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-non-root
+  annotations:
+    policies.kyverno.io/title: Require Non-Root User
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod, Container
+    policies.kyverno.io/description: >-
+      Pod dilarang berjalan sebagai user root. runAsNonRoot wajib diset
+      true pada securityContext container untuk mencegah privilege
+      escalation dan memitigasi risiko container escape. Ini adalah
+      implementasi prinsip least privilege sesuai model Triad SECURE
+      [Sanghi et al., 2025].
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - argocd
+      validate:
+        message: >-
+          Pod dilarang berjalan sebagai root. Tambahkan:
+          securityContext.runAsNonRoot: true pada definisi container.
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  runAsNonRoot: true
+
+---
+# POLICY 3: Restrict Image Registry
+# Justifikasi: Mengizinkan image dari registry sembarang membuka risiko
+# supply chain attack — image berbahaya bisa disisipkan melalui registry
+# tidak terpercaya. Policy ini memastikan hanya image dari registry
+# yang disetujui kelompok (fikriau/* untuk aplikasi kelompok dan
+# library/* untuk official images) yang bisa dijalankan di cluster.
+# Ini menegakkan prinsip Zero Trust di layer image provenance
+# [Sanghi et al., 2025].
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registry
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registry
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod, Container
+    policies.kyverno.io/description: >-
+      Pod hanya boleh menggunakan image dari registry terpercaya:
+      fikriau/* (Docker Hub kelompok) dan library/* (Docker Hub official).
+      Image dari registry asing akan ditolak untuk mencegah supply chain
+      attack dan eksekusi image tidak terverifikasi di cluster.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-image-registry
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - argocd
+      validate:
+        message: >-
+          Image hanya boleh dari registry terpercaya: fikriau/* atau
+          library/*. Image dari registry lain (contoh: attacker.io/malware)
+          akan ditolak oleh admission webhook Kyverno.
+        pattern:
+          spec:
+            containers:
+              - image: "fikriau/* | library/*"

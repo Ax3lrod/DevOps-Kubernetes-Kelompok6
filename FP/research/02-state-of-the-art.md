@@ -51,3 +51,104 @@ Semua perubahan infrastruktur harus melalui commit di Git, memberikan rekam jeja
 - Shamim, S.I. (2021). Mitigating Security Attacks in Kubernetes Manifests. *ESEC/FSE*, 1243–1245.
 - Shrestha, R. & Ali, A.A.N. (2024). Configuration Management in Kubernetes Environments: A GitOps Approach. *IEEE/ACM UCC 2024*. DOI: 10.1109/UCC63386.2024.00077
 - Zeini, A. et al. (2023). Preliminary Investigation into a Security Approach for Infrastructure as Code. *ICICT*, 763–783.
+
+---
+
+---
+
+# Policy-as-Code sebagai Komplemen GitOps: Keamanan di Layer Runtime
+
+*(Bagian ini difokuskan pada Policy-as-Code dan Runtime Admission Control, disusun oleh Anggota 3 — Andre)*
+
+---
+
+## Keterbatasan Static Scanning di CI Pipeline
+
+Pendekatan keamanan tradisional dalam pipeline DevOps berfokus pada *static scanning* di tahap *build time* — menggunakan tools seperti SonarQube (analisis kualitas kode), Trivy (vulnerability scanning pada container image), atau Snyk (dependency security). Meskipun pendekatan ini penting, ia memiliki beberapa kelemahan fundamental ketika digunakan sebagai **satu-satunya** mekanisme keamanan:
+
+### 1. Hanya Menangkap Masalah yang Diketahui Saat Build
+Static scanner hanya bisa mendeteksi *known vulnerabilities* pada saat image di-build. Jika sebuah CVE baru ditemukan setelah image sudah berada di cluster, static scanner tidak akan pernah tahu — dan pod yang sudah berjalan tidak akan diperiksa ulang secara otomatis.
+
+### 2. Tidak Ada Enforcement di Runtime
+Developer atau operator bisa saja melakukan `kubectl apply -f pod-berbahaya.yaml` **langsung ke cluster** tanpa melewati pipeline CI sama sekali. Dalam skenario ini, SonarQube dan Trivy tidak akan pernah dijalankan — dan tidak ada yang bisa mencegah pod tersebut berjalan. Ini adalah *bypass* yang sering luput dari perhatian.
+
+### 3. Misconfiguration yang Lolos CI
+Kesalahan konfigurasi manifest — seperti lupa mendefinisikan `resources.limits`, atau tidak menyetel `securityContext.runAsNonRoot: true` — tidak akan tertangkap oleh scanner vulnerability. Pod akan lulus CI, tapi berjalan dengan konfigurasi yang tidak aman di cluster.
+
+### 4. Tidak Ada Audit Trail untuk Perubahan Runtime
+Jika seseorang mengubah konfigurasi pod langsung di cluster (misalnya via `kubectl edit`), tidak ada log yang terintegrasi dengan sistem CI — perubahan tersebut tidak ter-review dan tidak ter-*audit* secara sistematis.
+
+---
+
+## Runtime Admission Control sebagai Komplemen
+
+**Admission Controller** adalah mekanisme di dalam Kubernetes API server yang berfungsi sebagai *gatekeeper* — setiap permintaan untuk membuat atau mengubah resource (Pod, Deployment, ConfigMap, dll.) **wajib melewati** admission webhook sebelum diterima dan dijadwalkan. Tidak ada pengecualian: bahkan permintaan yang datang dari `kubectl apply` manual langsung oleh administrator pun harus melewati webhook ini.
+
+**Kyverno** adalah implementasi admission controller berbasis *Policy-as-Code*:
+- Kebijakan ditulis dalam format YAML — format yang sama dengan manifest Kubernetes lainnya
+- Kebijakan bisa di-*version control* di Git (di-*review* via pull request, ter-audit via commit history)
+- Tidak memerlukan bahasa pemrograman tambahan (berbeda dengan OPA yang menggunakan Rego)
+- Mendukung dua mode: **Audit** (mencatat pelanggaran tanpa memblokir) dan **Enforce** (menolak request secara langsung)
+
+---
+
+## Tabel Perbandingan: Static Scanning vs Runtime Admission Control
+
+| Aspek | Static Scanning (CI — Trivy/SonarQube) | Runtime Admission Control (Kyverno) |
+|---|---|---|
+| **Waktu eksekusi** | *Build time* (sebelum deploy) | *Deploy time* (saat `kubectl apply` ke cluster) |
+| **Yang bisa dicegah** | Vulnerability di image dan dependency | Misconfiguration di manifest (no limits, root user, dll.) |
+| **Bisa dibypass?** | Ya — jika deploy langsung tanpa melewati CI | Tidak — **semua** request melewati webhook, tanpa pengecualian |
+| **Audit trail** | Log pipeline CI saja | Kyverno Policy Report + Kubernetes Event log |
+| **Format kebijakan** | Tool-specific (Trivy config, SonarQube rules) | YAML native Kubernetes — bisa di-*version control* |
+| **Perlindungan terhadap supply chain attack** | Parsial — hanya image yang di-scan saat build | Penuh — image registry restriction di-enforce saat deploy |
+| **Remediation** | Manual — developer harus perbaiki dan rebuild | Otomatis — request ditolak, error message eksplisit |
+
+---
+
+## Tabel Perbandingan: Push-Based (SSH) vs Pull-Based (GitOps/ArgoCD) dari Perspektif Keamanan
+
+Sebagai konteks tambahan dari perspektif Security Specialist, pendekatan GitOps juga menghilangkan beberapa *attack surface* yang ada di push-based:
+
+| Aspek | Push-Based (Ansible/SSH) | Pull-Based (GitOps/ArgoCD) |
+|---|---|---|
+| **Trigger deploy** | Operator *run* playbook manual | ArgoCD *polling* Git otomatis |
+| **Drift detection** | Tidak ada | *Continuous* — ArgoCD membandingkan state setiap siklus |
+| **Remediation** | Manual, bisa 5–10 menit | Otomatis, ~30 detik [Shrestha & Ali, 2024] |
+| **Audit trail** | Log Jenkins saja | Git *commit history* lengkap |
+| **Kredensial ke cluster** | SSH key tersimpan di Jenkins | Tidak ada — ArgoCD yang *pull* dari dalam cluster |
+
+---
+
+## Mengapa `validationFailureAction: Enforce` (Bukan `Audit`)
+
+Kyverno mendukung dua mode validasi:
+
+- **Mode `Audit`**: Kyverno mencatat pelanggaran ke dalam *Policy Report*, namun **tidak memblokir** deployment. Pod tetap berjalan meski melanggar policy. Mode ini berguna untuk fase *discovery* — memahami seberapa banyak pelanggaran yang ada sebelum memutuskan untuk menegakkan.
+
+- **Mode `Enforce`**: Kyverno **menolak request secara langsung** dengan status `403 Forbidden`. Pod yang melanggar policy tidak akan pernah sampai ke tahap *scheduling* — ditolak di level API server.
+
+Kelompok kami menggunakan `Enforce` dengan alasan:
+
+1. **Prinsip Zero Trust** [Sanghi et al., 2025]: Tidak ada entitas yang otomatis dipercaya. Setiap deployment — baik dari pipeline CI maupun `kubectl apply` manual — harus melewati validasi tanpa pengecualian.
+
+2. **Demonstrasi yang bermakna**: Mode `Audit` tidak memberikan perlindungan nyata — ini seperti CCTV yang merekam perampokan tapi tidak ada pintu yang terkunci. Untuk keperluan evaluasi kelompok, kami perlu membuktikan bahwa policy **benar-benar memblokir**, bukan sekadar mencatat.
+
+3. **Konsistensi dengan deployment.yaml**: Manifest milik Winduts (Anggota 2) sudah memiliki semua field yang diperlukan (`runAsNonRoot: true`, `resources.limits`, dll.), sehingga pod legitimate **tidak akan terpengaruh** oleh mode Enforce — hanya pod ilegal yang akan ditolak.
+
+---
+
+## Keterkaitan dengan Model Triad [Sanghi et al., 2025]
+
+Paper [Sanghi et al., 2025] menempatkan Policy-as-Code di domain **SECURE** sebagai komponen *cross-layer enforcement* yang bekerja lintas infrastruktur, CI/CD pipeline, dan API gateway. Implementasi Kyverno kelompok kami adalah realisasi konkret dari kontribusi B paper tersebut:
+
+> *"Implementing cross-layer Policy-as-Code uniformly across infrastructure, CI/CD pipelines, and API gateways"*
+
+Dalam konteks kelompok kami, Kyverno beroperasi di **titik pertemuan antara domain DEVELOP dan OPERATE** — ia memvalidasi semua resource yang hendak dijalankan, apapun asalnya (dari Jenkins pipeline Fio maupun dari ArgoCD sync Winduts). Ini adalah implementasi prinsip Zero Trust di layer Kubernetes admission: tidak ada yang lolos tanpa verifikasi.
+
+---
+
+## Referensi Tambahan (Bagian Policy-as-Code)
+
+- Sanghi, Sudhakaran, Koganti, Ryali (2025). DevOps and Secure Cloud-Native Architectures for Finance. *ICSIT 2025*. https://ieeexplore.ieee.org/document/11294986
+- Shrestha, R. & Ali, A.A.N. (2024). Configuration Management in Kubernetes Environments: A GitOps Approach. *IEEE/ACM UCC 2024*. DOI: 10.1109/UCC63386.2024.00077
