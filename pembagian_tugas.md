@@ -1,127 +1,120 @@
-# Rekomendasi Pembagian Kerja & Alur Pengerjaan Kelompok — DevOps Final Project
+# Rekomendasi Detail Kerja & Alur Pengerjaan Kelompok 6 — DevOps Final Project
 
-Dokumen ini berisi detail spesifik pekerjaan untuk setiap anggota kelompok serta **alur kerja kronologis (siapa mengerjakan apa dan kapan)** agar pengerjaan proyek berjalan efisien dan terstruktur tanpa hambatan ketergantungan (*dependency blocker*).
+Dokumen ini disusun untuk membagi tanggung jawab secara adil, di mana setiap anggota kelompok mendapatkan peran **Implementasi Teknis (Coding/Setup)** dan **Riset/Dokumentasi (Markdown)**. Nama anggota ditulis sebagai placeholder (**Anggota 1** hingga **Anggota 6**) agar kelompok Anda dapat berdiskusi dan memilih sendiri siapa yang memegang peran tersebut.
 
 ---
 
-## 📅 Alur Kronologis Pengerjaan (Timeline & Alur Kerja)
+## 📋 Tabel Pembagian Peran & Tanggung Jawab Terintegrasi
 
-Pengerjaan dibagi menjadi **4 Fase Utama** selama 1 minggu:
+| Anggota | Peran Teknis | Fokus Tugas Implementasi 🛠️ | Tugas Riset & Dokumentasi (Markdown) 📝 |
+| :--- | :--- | :--- | :--- |
+| **Anggota 1** | *Project Lead & Evaluator* | Mengintegrasikan seluruh kode manifest, memvalidasi kelancaran setup keseluruhan, dan memimpin demo live. | * Menulis `evaluation/analysis.md` (Analisis data & grafik perbandingan)<br>* Menyusun slide presentasi (`presentation/slides.pdf`) |
+| **Anggota 2** | *GitOps & K8s CD Specialist* | Menulis manifest Kubernetes TaskFlow (`implementation/kubernetes/deployment.yaml` & `service.yaml`) yang aman (limits, non-root). | * Menulis review Paper 1 di `papers/paper-1-gitops-drift.md`<br>* Menyusun bagian GitOps di `research/02-state-of-the-art.md` |
+| **Anggota 3** | *Security Policy Specialist* | Menginstal Kyverno dan menulis manifest ClusterPolicies keamanan kontainer (`implementation/kyverno/policies.yaml`). | * Menulis review Paper 2 di `papers/paper-2-secure-finance.md`<br>* Menyusun bagian Policy-as-Code di `research/02-state-of-the-art.md` |
+| **Anggota 4** | *CI Pipeline Specialist* | Mengubah pipeline `Jenkinsfile` (mengganti deploy SSH lama dengan automasi update tag di Git config repo). | * Menulis analisis kelemahan sistem lama di `research/01-gap-analysis.md`<br>* Menulis panduan instalasi di `README.md` |
+| **Anggota 5** | *Drift Tester & Automation* | Membuat skrip automasi pengujian drift dan penghitung MTTR otomatis (`implementation/scripts/simulate-drift.ps1`). | * Menulis data baseline sebelum peningkatan di `evaluation/metrics-before.md`<br>* Menulis justifikasi desain GitOps di `research/03-design-decisions.md` |
+| **Anggota 6** | *QA & Policy Auditor* | Membuat manifest/skrip uji coba pemblokiran Kyverno (mencoba deploy kontainer ilegal: root user / no limits). | * Menulis data pasca-peningkatan di `evaluation/metrics-after.md`<br>* Menulis justifikasi desain Kyverno di `research/03-design-decisions.md` |
 
-```mermaid
-gantt
-    title Alur Pengerjaan Final Project (1 Minggu)
-    dateFormat  D
-    axisFormat %d
-    
-    section Fase 1: Inisiasi & Setup
-    Membaca Paper & Tulis Catatan (A2 & A3)   :a1, 1, 2d
-    Gap Analysis & Setup K8s (A4 & A5)       :a2, 1, 2d
-    
-    section Fase 2: Implementasi
-    Menulis Manifest K8s (A2)                 :b1, 3, 2d
-    Menulis Kyverno Policies (A3)             :b2, 3, 2d
-    Modifikasi Jenkinsfile (A4)               :b3, 3, 2d
-    Mencatat Metrik Baseline (A5)             :b4, 3, 1d
-    
-    section Fase 3: Pengujian & QA
-    Uji Drift & Remedy Time (A5)              :c1, 5, 1d
-    Uji Pemblokiran Policy (A6)               :c2, 5, 1d
-    Mencatat Metrik Pasca Peningkatan (A6)    :c3, 5, 1d
-    
-    section Fase 4: Analisis & Slides
-    Analisis Data & Grafik (A1)               :d1, 6, 2d
-    Mengompilasi Refleksi & Slides (A1)       :d2, 6, 2d
+---
+
+## 📅 Alur Kronologis Pengerjaan (Step-by-Step Workflow)
+
+Ikuti urutan langkah di bawah ini untuk menghindari hambatan pengerjaan (*blocking tasks*):
+
+```
+HARI 1 - 2 (Riset & Inisiasi)
+  ├── 1. Anggota 2 & Anggota 3: Mulai membaca Paper 1 & 2 dan tulis ringkasan di papers/
+  ├── 2. Anggota 4: Menganalisis sistem Tugas 3 lama & menulis research/01-gap-analysis.md
+  └── 3. Anggota 5 & Anggota 2: Setup kluster Kubernetes & install ArgoCD dan Kyverno
+                                 ▲
+HARI 3 (Implementasi Konfigurasi)│
+  ├── 4. Anggota 2: Menulis deployment.yaml & service.yaml di implementation/kubernetes/
+  │                   │
+  │                   ▼ (Menunggu deployment.yaml selesai)
+  ├── 5. Anggota 3: Menulis ClusterPolicies di implementation/kyverno/policies.yaml
+  └── 6. Anggota 5: Mencatat data baseline manual di evaluation/metrics-before.md
+                                 ▲
+HARI 4 (Integrasi Pipeline)      │
+  ├── 7. Anggota 4: Memodifikasi Jenkinsfile untuk beralih ke Git-commit & push CD
+  └── 8. Anggota 1: Membantu verifikasi koneksi webhook Jenkins & Git configs
+                                 ▲
+HARI 5 (Pengujian & QA)          │
+  ├── 9. Anggota 5: Jalankan simulate-drift.ps1 untuk ukur Remedy Time ArgoCD
+  ├── 10. Anggota 6: Deploy Pod ilegal untuk uji pemblokiran Kyverno
+  └── 11. Anggota 6: Mencatat log sukses pengujian di evaluation/metrics-after.md
+                                 ▲
+HARI 6 - 7 (Analisis & Finalisasi)│
+  ├── 12. Anggota 1: Menulis evaluation/analysis.md & membuat slide presentasi
+  ├── 13. Seluruh Anggota: Menulis porsi jawaban refleksi-kelompok.md masing-masing
+  └── 14. Anggota 4 & Anggota 1: Final check README.md & demo setup
 ```
 
-### 🏁 Fase 1: Research, Inisiasi & K8s Setup (Hari 1–2)
-* **Ketergantungan**: Mulai bersamaan di hari pertama.
-* **Langkah Kerja**:
-  1. **Anggota 2 & Anggota 3** membaca paper masing-masing dan menyelesaikan ringkasan di folder `papers/`.
-  2. **Anggota 4** menganalisis Jenkinsfile lama dan menyusun berkas `research/01-gap-analysis.md`.
-  3. **Anggota 5** menginstal kluster Kubernetes lokal (misalnya Minikube/k3s) atau menyiapkan VPS bersama kelompok, kemudian menginstal ArgoCD dan Kyverno.
+---
 
-### 🔨 Fase 2: Implementasi Konfigurasi & Pipeline CD (Hari 3–4)
-* **Ketergantungan**: Menunggu Fase 1 selesai (K8s & ArgoCD aktif).
-* **Langkah Kerja**:
-  1. **Anggota 2** membuat manifest aplikasi di `implementation/kubernetes/deployment.yaml` dan `service.yaml`.
-  2. **Anggota 3** membuat konfigurasi ClusterPolicy di `implementation/kyverno/policies.yaml` berdasarkan manifest K8s yang dibuat Anggota 2.
-  3. **Anggota 4** mengubah `Jenkinsfile` di repositori agar Jenkins otomatis meng-update nilai tag image pada manifest K8s ketika build sukses (bukan lagi menjalankan perintah SSH docker-compose).
-  4. **Anggota 5** mencatat kondisi baseline sebelum peningkatan ke dalam `evaluation/metrics-before.md` (kecepatan perbaikan manual dan status kepatuhan sebelum Kyverno dipasang).
+## ✍️ Pembagian Penulisan Refleksi Kelompok (`docs/refleksi-kelompok.md`)
+Dokumen refleksi memuat tiga pertanyaan wajib yang dijawab secara kolaboratif (masing-masing minimal 250 kata):
 
-### 🧪 Fase 3: Pengujian, Uji Drift & Validasi QA (Hari 5)
-* **Ketergantungan**: Menunggu Fase 2 selesai (manifest K8s, Kyverno, dan pipeline sudah terhubung).
-* **Langkah Kerja**:
-  1. **Anggota 5** menjalankan skrip `implementation/scripts/simulate-drift.ps1` untuk mensimulasikan kegagalan replikasi dan mencatat waktu respons pemulihan otomatis ArgoCD (*Remedy Time*).
-  2. **Anggota 6** mencoba mendeploy Pod ilegal (misalnya pod berjalan sebagai root atau tanpa batas memory) untuk membuktikan Kyverno berhasil menolak manifest tersebut.
-  3. **Anggota 6** mencatat data pasca-peningkatan ke berkas `evaluation/metrics-after.md`.
-
-### 📝 Fase 4: Analisis Perbandingan, Refleksi & Slides (Hari 6–7)
-* **Ketergantungan**: Menunggu Fase 3 selesai (semua data pengujian terkumpul).
-* **Langkah Kerja**:
-  1. **Anggota 1** mengompilasi semua data pengujian, membuat grafik perbandingan MTTR sebelum vs sesudah, dan menuliskannya di `evaluation/analysis.md`.
-  2. **Anggota 1** memandu penyusunan `docs/refleksi-kelompok.md` (mengumpulkan teks dari setiap anggota sesuai dengan pembagian pertanyaan refleksi).
-  3. **Anggota 1** menyusun slide presentasi di `presentation/slides.pdf` dan memimpin simulasi presentasi Zoom.
-  4. **Anggota 4** menyelesaikan penulisan panduan jalankan ulang di `README.md`.
+1. **Pertanyaan 1 (Hal mengejutkan dari paper & dampaknya)**:
+   * **Ditulis oleh**: **Anggota 2 & Anggota 3** (selaku pembaca utama paper).
+2. **Pertanyaan 2 (Perbedaan implementasi kita vs usulan paper)**:
+   * **Ditulis oleh**: **Anggota 4 & Anggota 5** (selaku implementer pipeline & simulator drift yang mengalami kendala teknis nyata).
+3. **Pertanyaan 3 (Rencana jika ada waktu 1 bulan & kluster produksi)**:
+   * **Ditulis oleh**: **Anggota 1 & Anggota 6** (selaku koordinator dan QA yang memandang dari sisi kualitas dan roadmap jangka panjang).
 
 ---
 
 ## 🛠️ Detail Spesifik Deskripsi Tugas (Job Description)
 
 ### 👤 Anggota 1: Project Lead & Evaluator (PM & Slides Coordinator)
-* **Detail Tugas Implementasi**:
+* **Detail Tugas Implementasi (Teknis)**:
   * Melakukan review struktur folder akhir untuk memastikan tidak ada file konfigurasi yang tertinggal atau salah tempat.
   * Mengintegrasikan presentasi akhir dan mengoordinasikan waktu latihan demo presentasi berdurasi 20 menit (4 menit Paper, 8 menit Demo, 5 menit Evaluasi, 3 menit Q&A).
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `evaluation/analysis.md`**: Membandingkan durasi remediasi drift baseline (manual) dengan pasca-peningkatan (ArgoCD), menyusun visualisasi diagram/grafik ASCII/mermaid, dan menarik kesimpulan apakah klaim Paper 1 & 2 terbukti di TaskFlow.
-  * **Menyusun `presentation/slides.pdf`**: Merancang slide yang memuat latar belakang, gap, usulan arsitektur, demo, hasil evaluasi data nyata, dan refleksi.
-  * **Menulis Refleksi Pertanyaan 3**: Menyusun argumen mengenai rencana perluasan sistem dalam 1 bulan (misalnya multi-cluster GitOps, canary deployment dengan Argo Rollouts, dan distributed tracing OpenTelemetry).
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `evaluation/analysis.md`**: Membandingkan durasi remediasi drift baseline (manual) dengan pasca-peningkatan (ArgoCD), menyusun visualisasi diagram/grafik ASCII/mermaid, dan menarik kesimpulan berdasarkan data simulasi.
+  * **Menyusun Slide Presentasi (`presentation/slides.pdf`)**: Merancang slide yang memuat latar belakang, gap, usulan arsitektur, demo, hasil evaluasi data nyata, dan refleksi.
+  * **Refleksi Kelompok (Pertanyaan 3)**: Menulis rencana perluasan arsitektur dalam waktu 1 bulan di lingkungan produksi (Istio service mesh, mTLS, canary deployment).
 
-### 👤 Anggota 2: GitOps Engineer (Kubernetes & CD Specialist)
-* **Detail Tugas Implementasi**:
+### 👤 Anggota 2: GitOps & K8s CD Specialist
+* **Detail Tugas Implementasi (Teknis)**:
   * Membuat file `implementation/kubernetes/deployment.yaml`. Kontainer harus menggunakan base image TaskFlow (`fikriau/taskflow-api:stable`), mengekspos port internal, memiliki konfigurasi `readOnlyRootFilesystem: true`, dan wajib mendefinisikan `resources` limits & requests secara spesifik (cpu & memori).
   * Membuat file `implementation/kubernetes/service.yaml` untuk mengekspos aplikasi secara internal di kluster.
   * Melakukan inisiasi awal ArgoCD Application manifest di `implementation/argocd/application.yaml` yang mengarah ke folder manifest.
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `papers/paper-1-gitops-drift.md`**: Mengisi poin-poin metodologi Paper 1, skenario uji drift replikasi/jaringan, temuan remedy time, asumsi keterbatasan, dan 1 pertanyaan kritis terhadap paper tersebut.
-  * **Menulis `research/02-state-of-the-art.md` (Bagian GitOps)**: Menjelaskan pergeseran paradigma dari push-based CD (Ansible/SSH) ke pull-based CD (ArgoCD) berdasarkan data pemulihan drift.
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `papers/paper-1-gitops-drift.md`**: Menyusun reading notes ilmiah untuk Paper 1 (OsloMet UCC 2024).
+  * **Menulis `research/02-state-of-the-art.md` (Bagian GitOps)**: Membahas keunggulan pull-based GitOps dibanding push-based Ansible/SSH.
+  * **Refleksi Kelompok (Pertanyaan 1 - Bagian Paper 1)**: Menjelaskan temuan tak terduga tentang efisiensi auto-healing ArgoCD.
 
-### 👤 Anggota 3: Security Engineer (Policy-as-Code Specialist)
-* **Detail Tugas Implementasi**:
-  * Menginstal Kyverno di dalam Kubernetes Cluster menggunakan Helm (`helm install kyverno kyverno/kyverno`).
-  * Menulis manifest `implementation/kyverno/policies.yaml` dengan aturan:
-    1. Pod wajib mendefinisikan requests/limits cpu dan memori (`require-resource-limits`).
-    2. Pod dilarang berjalan sebagai user root (`runAsNonRoot: true`).
-    3. Pod hanya boleh menarik image dari trusted registry (`fikriau/*` dan `library/*`).
-  * Memastikan parameter `validationFailureAction` diset ke `Enforce` agar kebijakan memblokir secara aktif (bukan sekadar audit).
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `papers/paper-2-secure-finance-cloud.md`**: Mengisi tinjauan pustaka model Triad Paper 2, implementasi Zero Trust, metodologi auditabilitas, asumsi keterbatasan, dan 1 pertanyaan kritis terhadap paper tersebut.
-  * **Menulis `research/02-state-of-the-art.md` (Bagian Policy-as-Code)**: Menjelaskan pentingnya runtime admission controller di Kubernetes sebagai komplemen dari static scanning di CI.
+### 👤 Anggota 3: Security Policy Specialist
+* **Detail Tugas Implementasi (Teknis)**:
+  * Menginstal Kyverno di kluster Kubernetes menggunakan Helm (`helm install kyverno kyverno/kyverno`).
+  * Menulis ClusterPolicies Kyverno di `implementation/kyverno/policies.yaml` untuk melarang kontainer root (`runAsNonRoot: true`), mewajibkan resource limits, dan membatasi image registry hanya dari akun kelompok.
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `papers/paper-2-secure-finance-cloud.md`**: Menyusun reading notes ilmiah untuk Paper 2 (ICSIT 2025).
+  * **Menulis `research/02-state-of-the-art.md` (Bagian Policy-as-Code)**: Membahas runtime admission control vs static scanning di CI.
+  * **Refleksi Kelompok (Pertanyaan 1 - Bagian Paper 2)**: Menjelaskan pentingnya kepatuhan runtime (PaC) untuk mencegah eksploitasi kontainer root.
 
-### 👤 Anggota 4: Pipeline Specialist (Jenkins Engineer)
-* **Detail Tugas Implementasi**:
-  * Memodifikasi stage CD pada `Jenkinsfile` asli. Menghapus baris kode koneksi SSH (`sshagent`) ke VPS.
-  * Menulis stage baru di Jenkinsfile untuk melakukan klon otomatis ke repositori konfigurasi, meng-update image tag manifest ke commit SHA terbaru (`sed -i "s|image: fikriau/taskflow-api:.*|image: fikriau/taskflow-api:sha-${commitSha}|g" deployment.yaml`), lalu melakukan git commit dan push kembali ke Git repository.
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `research/01-gap-analysis.md`**: Menjabarkan secara mendalam risiko keamanan push-based CD (menyimpan private key SSH VPS di Jenkins), kerentanan configuration drift pada VM Docker Compose, dan tidak adanya policy enforcer di level runtime.
-  * **Menulis Panduan `README.md`**: Menulis instruksi setup dari nol, command Helm untuk menginstal Kyverno dan ArgoCD, panduan apply manifest, dan cara verifikasi.
+### 👤 Anggota 4: CI Pipeline Specialist
+* **Detail Tugas Implementasi (Teknis)**:
+  * Mengubah stage CD pada `Jenkinsfile` asli. Menghapus perintah koneksi SSH (`sshagent`) ke VPS.
+  * Menulis perintah Jenkins untuk melakukan otomatisasi klon Git manifest config, memperbarui tag image manifest ke commit SHA terbaru, dan melakukan push kembali ke Git repository untuk memicu ArgoCD sync.
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `research/01-gap-analysis.md`**: Mengidentifikasi kesenjangan arsitektur push-based lama (kebocoran kredensial SSH, tidak adanya auto-remediation drift, ketiadaan filter runtime).
+  * **Menulis Panduan `README.md`**: Menyusun petunjuk instalasi lengkap dan reproduksi dari nol.
+  * **Refleksi Kelompok (Pertanyaan 2 - Bagian Pipeline)**: Menjelaskan kendala teknis perubahan arsitektur Jenkins ke GitOps.
 
-### 👤 Anggota 5: Drift Tester (Automation & Metrics Engineer)
-* **Detail Tugas Implementasi**:
-  * Menulis skrip `implementation/scripts/simulate-drift.ps1` yang melakukan hal berikut secara otomatis:
-    1. Memverifikasi koneksi kubectl ke kluster.
-    2. Menghitung durasi pemutakhiran paksa replika deployment menjadi 0 (`kubectl scale --replicas=0`).
-    3. Memulai timer dan memantau status replika kluster secara berkala.
-    4. Menghentikan timer ketika ArgoCD berhasil memulihkan replika kembali menjadi 2 (*self-healing*) dan Pod berstatus Ready.
-    5. Menampilkan waktu Remedy Time (detik) pada terminal.
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `evaluation/metrics-before.md`**: Mencatat data baseline MTTR ketika container mati dan harus dinyalakan kembali lewat tombol "Build Now" di Jenkins secara manual.
-  * **Menulis `research/03-design-decisions.md` (Bagian GitOps)**: Menyediakan justifikasi teknis mengapa pull-based GitOps dipilih untuk meningkatkan availabilitas aplikasi berdasarkan temuan Paper 1.
+### 👤 Anggota 5: Drift Tester & Automation Specialist
+* **Detail Tugas Implementasi (Teknis)**:
+  * Menulis skrip PowerShell `implementation/scripts/simulate-drift.ps1` yang mensimulasikan drift replikasi (scale replicas ke 0), mendeteksi kapan ArgoCD melakukan auto-heal, dan menghitung durasi waktu Remedy Time (MTTR) otomatis.
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `evaluation/metrics-before.md`**: Mencatat data baseline MTTR ketika container mati dan harus dinyalakan kembali lewat Jenkins secara manual (tanpa GitOps).
+  * **Menulis `research/03-design-decisions.md` (Bagian GitOps)**: Menulis justifikasi ilmiah pemilihan ArgoCD berdasarkan temuan Paper 1.
+  * **Refleksi Kelompok (Pertanyaan 2 - Bagian Drift Testing)**: Menulis tantangan mensimulasikan drift pada cluster lokal/VPS.
 
-### 👤 Anggota 6: QA & Policy Validator (Quality Assurance Specialist)
-* **Detail Tugas Implementasi**:
-  * Menyiapkan manifest Pod tidak aman (misalnya pod nginx tanpa limit CPU atau running as root) untuk pengujian.
-  * Menjalankan perintah deploy manifest ilegal tersebut dan merekam pesan kesalahan penolakan (403 Forbidden) yang dikembalikan oleh Kyverno admission controller.
-* **Detail Tugas Dokumentasi**:
-  * **Menulis `evaluation/metrics-after.md`**: Mencatat data hasil eksekusi simulasi drift (kecepatan auto-heal) dan mendokumentasikan bukti log penolakan manifest tidak aman oleh Kyverno.
-  * **Menulis `research/03-design-decisions.md` (Bagian Policy-as-Code)**: Menyediakan justifikasi teknis mengapa runtime policy dipilih untuk menegakkan kepatuhan regulasi keamanan kontainer berdasarkan temuan Paper 2.
+### 👤 Anggota 6: QA & Policy Auditor
+* **Detail Tugas Implementasi (Teknis)**:
+  * Membuat file manifest Pod "ilegal" (berjalan sebagai root, tanpa resource limits, registry asing) untuk menguji keandalan penolakan Kyverno.
+  * Melakukan eksekusi test dan menangkap log error penolakan (403 Forbidden) dari admission webhook.
+* **Detail Tugas Riset & Dokumentasi (Markdown)**:
+  * **Menulis `evaluation/metrics-after.md`**: Mencatat data hasil pengujian pasca-peningkatan (MTTR auto-healing ArgoCD dan log penolakan Kyverno).
+  * **Menulis `research/03-design-decisions.md` (Bagian Policy-as-Code)**: Menulis justifikasi ilmiah penerapan Kyverno berdasarkan model Triad Paper 2.
+  * **Refleksi Kelompok (Pertanyaan 3 - Bagian QA)**: Menyusun argumen penambahan distributed tracing untuk kepatuhan audit.
