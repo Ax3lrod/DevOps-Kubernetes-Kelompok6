@@ -197,38 +197,6 @@ pipeline {
                 }
             }
         }
-
-        stage('10. Promote to Stable') {
-            when { branch 'main' }
-            steps {
-                script {
-                   def commitSha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-
-                   echo "Memulai proses update ke tag stable untuk versi: ${commitSha}"
-
-                   def fullTag = "${env.DOCKER_IMAGE}:sha-${commitSha}"
-
-                     withCredentials([usernamePassword(credentialsId: 'dockerhub-fikri', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                            sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
-                            
-                            sh """
-                                docker pull ${env.DOCKER_IMAGE}:stable || true
-                                docker tag ${env.DOCKER_IMAGE}:stable ${env.DOCKER_IMAGE}:stable-prev || true
-                                docker push ${env.DOCKER_IMAGE}:stable-prev || true
-                            """
-
-                            sh """
-                                docker tag ${fullTag} ${env.DOCKER_IMAGE}:stable
-                                docker push ${env.DOCKER_IMAGE}:stable
-                            """
-
-                            sh "docker logout"
-                     }
-                    
-                    echo "✅ Proses update stable selesai. Tag stable sekarang menunjuk ke versi: ${commitSha}"
-                }
-            }
-        }
     }
 
     post {
