@@ -178,6 +178,10 @@ pipeline {
                         sh """
                         git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/Ax3lrod/DevOps-Kubernetes-Kelompok6.git
 
+                        git fetch origin
+                        
+                        git checkout -B main origin/main
+
                         sed -i "s|image: fikriau/taskflow-api-k8s:.*|image: ${IMAGE_TAG}|" FP/implementation/kubernetes/deployment.yaml
 
                         git config user.email "jenkins@local"
