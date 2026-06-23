@@ -26,6 +26,7 @@ pipeline {
                     echo '📦 Downloading Dependencies...'
                     sh 'go mod download'
                 }
+                sh 'git remote -v'  
             }
         }
 
@@ -153,93 +154,47 @@ pipeline {
             }
         }
         
-        stage('9. Deploy using Kubernetes') {
+        stage('9. GitOps CD') {
             when { branch 'main' }
+
             steps {
                 script {
-                    echo "🚀 Deploying SHA image to VPS..."
 
-                    commitSha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    def IMAGE_TAG = "${env.DOCKER_IMAGE}:sha-${commitSha}" 
+                    def commitSha = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
 
-                    sshagent(credentials: ['vps-ssh']) {
+                    def IMAGE_TAG = "${env.DOCKER_IMAGE}:sha-${commitSha}"
+
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'github-token',
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_TOKEN'
+                        )
+                    ]) {
+
                         sh """
-                            ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
-                                set -e
-                                export KUBECONFIG=/home/kelompok6/.kube/config
-                                cd /home/kelompok6/DevOps-Kubernetes-Kelompok6
-                                kubectl set image deployment/taskflow-api \
-                                taskflow-api=${IMAGE_TAG} \
-                                -n taskflow-prod
+                        git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/Ax3lrod/DevOps-Kubernetes-Kelompok6.git
 
-                                kubectl rollout status deployment/taskflow-api \
-                                -n taskflow-prod \
-                                --timeout=120s
-                            '
+                        sed -i "s|image: fikriau/taskflow-api-k8s:.*|image: ${IMAGE_TAG}|" FP/implementation/kubernetes/deployment.yaml
+
+                        git config user.email "jenkins@local"
+                        git config user.name "Jenkins"
+
+                        git add FP/implementation/kubernetes/deployment.yaml
+
+                        git commit -m "[skip ci] Update image ${commitSha}" || true
+
+                        git push origin main
                         """
                     }
-
-                    echo "✅ Deployment selesai."
                 }
             }
         }
 
-        stage('9.1 Verify Deployment') {
-            when { branch 'main' }
-            steps {
-                script {
-                    echo "🔍 Verifying deployment on VPS..."
-                    sshagent(credentials: ['vps-ssh']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no kelompok6@10.4.89.175 '
-                                export KUBECONFIG=/home/kelompok6/.kube/config
-                                echo "📊 POD STATUS:"
-                                kubectl get pods -n taskflow-prod
-
-                                echo "📦 IMAGE RUNNING:"
-                                kubectl get deployment taskflow-api -n taskflow-prod \
-                                -o jsonpath="{.spec.template.spec.containers[0].image}"
-                            '
-                        """
-                    }
-                    echo "✅ Verifikasi deployment selesai. Pastikan POD berjalan dengan image terbaru."
-                }
-            }
-        }
-
-        stage('10. Smoke Test') {
-            when { branch 'main' }
-            steps {
-                script {
-                echo "🔍 Memulai Smoke Test otomatis untuk mencegah server mati sebelum Demo Investor..."
-
-                def MAPPED_PORT = "8080"
-                echo "🚀 Server staging berjalan di port: ${MAPPED_PORT}"
-
-                sh """
-                    RETRIES=10
-                    COUNT=0
-                    until curl -sf http://localhost:${MAPPED_PORT}/health; do
-                        COUNT=\$((COUNT+1))
-                        if [ \$COUNT -ge \$RETRIES ]; then
-                            echo "❌ FATAL: Server tidak merespons setelah 20 detik (Health check gagal)!"
-                            exit 1
-                        fi
-                        echo "Menunggu server siap... (Percobaan \$COUNT/\$RETRIES)"
-                        sleep 2
-                    done
-                """
-
-                sh """
-                    echo "🔎 Memastikan endpoint utama berjalan: GET /api/v1/stats"
-                    curl -sf http://localhost:${MAPPED_PORT}/api/v1/stats || (echo "❌ FATAL: Stats endpoint mati!"; exit 1)
-                    echo "✅ Smoke test berhasil. Versi staging STABIL untuk demo."
-                """
-            }
-          }
-        }
-
-        stage('11. Promote to Stable') {
+        stage('10. Promote to Stable') {
             when { branch 'main' }
             steps {
                 script {
