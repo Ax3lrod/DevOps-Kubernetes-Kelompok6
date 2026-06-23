@@ -118,3 +118,11 @@ Dokumen refleksi memuat tiga pertanyaan wajib yang dijawab secara kolaboratif (m
   * **Menulis `evaluation/metrics-after.md`**: Mencatat data hasil pengujian pasca-peningkatan (MTTR auto-healing ArgoCD dan log penolakan Kyverno).
   * **Menulis `research/03-design-decisions.md` (Bagian Policy-as-Code)**: Menulis justifikasi ilmiah penerapan Kyverno berdasarkan model Triad Paper 2.
   * **Refleksi Kelompok (Pertanyaan 3 - Bagian QA)**: Menyusun argumen penambahan distributed tracing untuk kepatuhan audit.
+
+
+Anggota 1: Satya
+Anggota 2: Harwinda
+Anggota 3: Andre
+Anggota 4: Fio
+Anggota 5: Fikri
+Anggota 6: Kris

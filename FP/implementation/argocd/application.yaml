@@ -11,7 +11,7 @@ spec:
     path: FP/implementation/kubernetes
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: default
+    namespace: taskflow-prod
   syncPolicy:
     automated:
       prune: true        # Hapus resource yang sudah tidak ada di Git

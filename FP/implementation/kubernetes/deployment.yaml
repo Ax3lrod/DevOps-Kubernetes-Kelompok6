@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: taskflow-api
-  namespace: default
+  namespace: taskflow-prod
   labels:
     app: taskflow-api
 spec:
