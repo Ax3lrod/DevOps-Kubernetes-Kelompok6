@@ -36,7 +36,7 @@ echo -e "\n${YELLOW}[2/2] REMEDY PHASE: Memantau proses pemulihan mandiri kluste
 IS_HEALED=false
 
 while [ "$IS_HEALED" = false ]; do
-    sleep 2
+    sleep 0.5
     
     # Ambil jumlah replika yang berstatus Ready/Running saat ini lewat kubectl
     CURRENT_REPLICAS=$(sudo kubectl get deployment/${DEPLOYMENT_NAME} -n ${NAMESPACE} -o jsonpath='{.status.readyReplicas}' 2>/dev/null)

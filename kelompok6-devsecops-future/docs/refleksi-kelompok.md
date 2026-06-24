@@ -2,12 +2,12 @@
 
 **Anggota Kelompok:**
 
-1. [Nama Anggota 1] - Project Lead & Evaluator
-2. [Nama Anggota 2] - GitOps & K8s CD Specialist
+1. [Aryasatya Alaauddin] - Project Lead & Evaluator
+2. [Harwinda] - GitOps & K8s CD Specialist
 3. [Andre] - Security Policy Specialist
-4. [Nama Anggota 4] - CI Pipeline Specialist
+4. [Fiorenza Adelia Nalle] - CI Pipeline Specialist
 5. [Fikri] - Drift Tester & Automation
-6. [Nama Anggota 6] - QA & Policy Auditor
+6. [Kris] - QA & Policy Auditor
 
 ---
 
