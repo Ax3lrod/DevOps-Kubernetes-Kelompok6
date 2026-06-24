@@ -114,14 +114,22 @@ kubectl get pods -n taskflow-prod
 ```
 
 ### D. Uji Coba Self-Healing (Drift Test)
-Hapus deployment secara paksa untuk melihat keajaiban auto-healing ArgoCD.
+Skrip otomatisasi telah disediakan untuk memicu drift dan menghitung waktu pemulihan (MTTR) secara otomatis.
+
+```bash
+# Jika di Linux/Mac (Bash)
+cd kelompok6-devsecops-future/implementation/script
+chmod +x simulate-drift-linux.sh
+bash ./simulate-drift-linux.sh
+```
+
 ```powershell
 # Jika di Windows (PowerShell)
 cd kelompok6-devsecops-future/implementation/script
 pwsh ./simulate-drift1.ps1
 ```
 
-Atau lakukan manual dengan menjalankan `kubectl delete deployment taskflow-api -n taskflow-prod`. Tunggu 10-30 detik, ArgoCD akan membangkitkan deployment itu kembali secara otomatis.
+Atau lakukan manual dengan menjalankan `kubectl delete deployment taskflow-api -n taskflow-prod`. Tunggu beberapa detik, ArgoCD akan membangkitkan deployment itu kembali secara otomatis.
 
 ---
 
