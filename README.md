@@ -73,5 +73,3 @@ migrations/001_create_tasks.sql  ← Skema database
 
 > **Catatan untuk mahasiswa**: Kode ini mengandung **3 bug yang disengaja**.
 > Lihat `pbl-cicd-problem.md` untuk detail skenario dan instruksi lengkap.
-
-testing
