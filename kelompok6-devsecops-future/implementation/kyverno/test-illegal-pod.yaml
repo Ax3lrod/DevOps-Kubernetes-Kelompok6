@@ -1,0 +1,115 @@
+# =============================================================================
+# implementation/kyverno/test-illegal-pod.yaml
+# Dibuat oleh: Anggota 6 (QA & Policy Auditor)
+# Tujuan: Memverifikasi 3 ClusterPolicy Kyverno (mode Enforce) milik Anggota 3
+#         benar-benar memblokir konfigurasi Pod yang melanggar.
+#
+# Setiap Pod di bawah HANYA melanggar satu aturan, supaya kita bisa membuktikan
+# tiap policy bekerja secara independen (bukan cuma satu test gabungan).
+#
+# Cara pakai (lihat juga scripts/test-kyverno-policies.sh):
+#   kubectl apply -f implementation/kyverno/test-illegal-pod.yaml
+#   -> Kubernetes API akan menolak SETIAP pod di bawah dengan error
+#      "admission webhook ... denied the request"
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TEST A — Melanggar policy: require-non-root
+# Container dijalankan sebagai root (runAsNonRoot: false).
+# Resource limits & registry SUDAH benar agar hanya 1 pelanggaran yang diuji.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: illegal-root-pod
+  namespace: default
+  labels:
+    test-case: violates-require-non-root
+spec:
+  containers:
+    - name: illegal-root-pod
+      image: library/nginx
+      securityContext:
+        runAsNonRoot: false
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+---
+# -----------------------------------------------------------------------------
+# TEST B — Melanggar policy: require-resource-limits
+# Tidak ada field `resources` sama sekali (requests & limits).
+# runAsNonRoot & registry SUDAH benar agar hanya 1 pelanggaran yang diuji.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: illegal-no-limits-pod
+  namespace: default
+  labels:
+    test-case: violates-require-resource-limits
+spec:
+  containers:
+    - name: illegal-no-limits-pod
+      image: library/nginx
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+---
+# -----------------------------------------------------------------------------
+# TEST C — Melanggar policy: restrict-image-registry
+# Image diambil dari registry asing (ubuntu, bukan fikriau/* atau library/*).
+# runAsNonRoot & resource limits SUDAH benar agar hanya 1 pelanggaran diuji.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: illegal-registry-pod
+  namespace: default
+  labels:
+    test-case: violates-restrict-image-registry
+spec:
+  containers:
+    - name: illegal-registry-pod
+      image: ubuntu:latest
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+---
+# -----------------------------------------------------------------------------
+# TEST D — Kontrol positif (HARUS DITERIMA)
+# Pod yang patuh ke semua aturan, memakai image resmi kelompok.
+# Membuktikan policy tidak overblocking pod yang sah.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: legit-test-pod
+  namespace: default
+  labels:
+    test-case: control-should-be-allowed
+spec:
+  containers:
+    - name: legit-test-pod
+      image: fikriau/taskflow-api-k8s:stable
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        allowPrivilegeEscalation: false
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "500m"
+          memory: "256Mi"
