@@ -56,7 +56,7 @@ Setelah server siap, kita instal mesin utama (ArgoCD & Kyverno) dan deploy aplik
 helm repo add kyverno https://kyverno.github.io/kyverno/ --force-update
 helm install kyverno kyverno/kyverno -n kyverno --create-namespace
 # Terapkan kebijakan keamanan Kelompok 6
-kubectl apply -f implementation/kyverno/policies.yaml
+kubectl apply -f kelompok6-devsecops-future/implementation/kyverno/policies.yaml
 ```
 
 ### B. Install ArgoCD (GitOps Engine)
@@ -75,9 +75,9 @@ kubectl create secret generic taskflow-db-secret \
 ```
 
 ### D. Apply ArgoCD Application
-Langkah inilah yang akan memicu ArgoCD untuk menarik semua manifest di folder `implementation/kubernetes`.
+Langkah inilah yang akan memicu ArgoCD untuk menarik semua manifest di folder `kelompok6-devsecops-future/implementation/kubernetes`.
 ```bash
-kubectl apply -f implementation/argocd/application.yaml
+kubectl apply -f kelompok6-devsecops-future/implementation/argocd/application.yaml
 ```
 
 ## 3. CI/CD Pipeline (Automasi)
@@ -86,7 +86,7 @@ Alur kerja otomatisasi kami adalah sebagai berikut:
 1.  **Menjalankan Jenkins**: Buka `http://<IP_VPS>:8080`, buat "Pipeline Job", dan hubungkan ke repositori GitHub Kelompok 6.
 2.  **Update Image Logic**:
     *   Jenkins membangun Docker Image baru.
-    *   Jenkins **tidak SSH ke VPS**. Jenkins menggunakan *Credentials* GitHub untuk mengedit file `implementation/kubernetes/deployment.yaml`.
+    *   Jenkins **tidak SSH ke VPS**. Jenkins menggunakan *Credentials* GitHub untuk mengedit file `kelompok6-devsecops-future/implementation/kubernetes/deployment.yaml`.
     *   Jenkins mengganti tag image (misal: `sha-123` ke `sha-456`).
     *   Jenkins melakukan `git push` perubahan tersebut kembali ke GitHub.
 3.  **ArgoCD Sync**:
@@ -117,8 +117,8 @@ kubectl get pods -n taskflow-prod
 Hapus deployment secara paksa untuk melihat keajaiban auto-healing ArgoCD.
 ```powershell
 # Jika di Windows (PowerShell)
-cd implementation/scripts
-pwsh ./simulate-drift.ps1
+cd kelompok6-devsecops-future/implementation/script
+pwsh ./simulate-drift1.ps1
 ```
 
 Atau lakukan manual dengan menjalankan `kubectl delete deployment taskflow-api -n taskflow-prod`. Tunggu 10-30 detik, ArgoCD akan membangkitkan deployment itu kembali secara otomatis.
