@@ -18,14 +18,8 @@ pipeline {
     stages {
         stage('0. Prevent Infinite Loop') {
             steps {
-                script {
-                    sh 'git config --global --add safe.directory "*"'
-                    def commitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-                    if (commitMsg.contains("[skip ci]")) {
-                        currentBuild.result = 'NOT_BUILT'
-                        error("Mencegah Infinite Loop: Commit message mengandung [skip ci]")
-                    }
-                }
+                // Plugin SCM Skip akan mendeteksi [skip ci] lalu membatalkan dan MENGHAPUS build ini dari history
+                scmSkip(deleteBuild: true, skipPattern:'.*\\[skip ci\\].*')
             }
         }
 
