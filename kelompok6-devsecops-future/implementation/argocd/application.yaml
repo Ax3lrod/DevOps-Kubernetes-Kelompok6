@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/Ax3lrod/DevOps-Kubernetes-Kelompok6.git'
     targetRevision: HEAD
-    path: FP/implementation/kubernetes
+    path: kelompok6-devsecops-future/implementation/kubernetes
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: taskflow-prod

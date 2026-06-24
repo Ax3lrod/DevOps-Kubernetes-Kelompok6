@@ -182,12 +182,12 @@ pipeline {
                         
                         git checkout -B main origin/main
 
-                        sed -i "s|image: fikriau/taskflow-api-k8s:.*|image: ${IMAGE_TAG}|" FP/implementation/kubernetes/deployment.yaml
+                        sed -i "s|image: fikriau/taskflow-api-k8s:.*|image: ${IMAGE_TAG}|" kelompok6-devsecops-future/implementation/kubernetes/deployment.yaml
 
                         git config user.email "jenkins@local"
                         git config user.name "Jenkins"
 
-                        git add FP/implementation/kubernetes/deployment.yaml
+                        git add kelompok6-devsecops-future/implementation/kubernetes/deployment.yaml
 
                         git commit -m "[skip ci] Update image ${commitSha}" || true
 
