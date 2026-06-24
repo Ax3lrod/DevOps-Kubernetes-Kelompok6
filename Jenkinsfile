@@ -16,6 +16,18 @@ pipeline {
     }
 
     stages {
+        stage('0. Prevent Infinite Loop') {
+            steps {
+                script {
+                    def commitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    if (commitMsg.contains("[skip ci]")) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error("Mencegah Infinite Loop: Commit message mengandung [skip ci]")
+                    }
+                }
+            }
+        }
+
         stage('1. Preparation') {
             steps {
                 // Memastikan Jenkins menarik branch/PR yang benar
