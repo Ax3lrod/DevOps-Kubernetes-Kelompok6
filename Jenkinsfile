@@ -19,6 +19,7 @@ pipeline {
         stage('0. Prevent Infinite Loop') {
             steps {
                 script {
+                    sh 'git config --global --add safe.directory "*"'
                     def commitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
                     if (commitMsg.contains("[skip ci]")) {
                         currentBuild.result = 'NOT_BUILT'
