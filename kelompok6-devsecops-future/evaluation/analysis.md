@@ -12,11 +12,11 @@ xychart-beta
     title "Perbandingan Waktu Pemulihan Sistem (MTTR)"
     x-axis ["Sistem Lama (Manual)", "Sistem GitOps (ArgoCD)"]
     y-axis "Waktu (Detik)" 0 --> 35
-    bar [31.58, 1.52]
+    bar [31.58, 2.04]
 ```
 
 ### 💡 Analisis Data:
-1. **Lonjakan Kecepatan:** Kecepatan rekonsiliasi dan pemulihan melonjak sangat tajam. Sistem lama membutuhkan waktu **31.581 detik**, sementara sistem GitOps hanya membutuhkan **1.522 detik**. Ini merupakan peningkatan efisiensi lebih dari **2000%**.
+1. **Lonjakan Kecepatan:** Kecepatan rekonsiliasi dan pemulihan melonjak sangat tajam. Sistem lama membutuhkan waktu **31.581 detik**, sementara sistem GitOps hanya membutuhkan **2.038 detik**. Ini merupakan peningkatan efisiensi lebih dari **1500%**.
 2. **Eliminasi Human Bottleneck:** Pada sistem lama, sebagian besar waktu (30 detik) habis terbuang karena *Discovery Time* (waktu sadar) manusia yang sangat lambat. Di sistem GitOps, *Discovery Time* adalah **instan (0 detik)** karena kontroler ArgoCD melakukan *polling* dan bereaksi terhadap *event* API Kubernetes secara *real-time*.
 
 ## 🛡️ 2. Perbandingan Keamanan Kluster (Runtime Admission)
