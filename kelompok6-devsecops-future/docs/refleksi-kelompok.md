@@ -56,3 +56,49 @@ Untuk mengatasi hambatan tersebut, kami terpaksa mengambil pendekatan kompromi d
 
 _(Ditulis oleh Anggota 1 & Anggota 6)_
 _(Menunggu kontribusi penulisan dari Anggota 1 dan Anggota 6)_
+**Refleksi Kelompok — Pertanyaan 3**
+**Bagian QA (Ditulis oleh Anggota 6)**
+Rencana Jika Ada Waktu 1 Bulan & Kluster Produksi
+Kyverno dan ArgoCD yang sudah kami implementasikan berhasil menjawab dua
+masalah inti: mencegah konfigurasi berbahaya lolos ke cluster (Kyverno) dan
+memastikan state cluster selalu sesuai dengan Git (ArgoCD). Namun, dari sudut
+pandang QA dan audit kepatuhan, ada satu gap besar yang belum tersentuh:
+observability terhadap apa yang sebenarnya terjadi di dalam cluster setelah
+sebuah Pod berhasil di-deploy.
+
+Saat ini, pengujian kami sebatas memverifikasi bahwa admission webhook
+menolak/menerima Pod pada titik deployment (point-in-time check). Tapi di
+lingkungan produksi nyata, terutama untuk kasus finansial seperti yang dibahas
+Paper 2, regulator dan auditor biasanya tidak hanya bertanya "apakah kontrol
+keamanan ada?", melainkan "bisakah kamu membuktikan, untuk setiap request yang
+masuk, siapa yang mengaksesnya, lewat service apa, dan apakah ada anomali?".
+Inilah yang tidak bisa dijawab oleh Kyverno maupun ArgoCD — keduanya bekerja di
+level konfigurasi/deployment, bukan di level request-flow antar service saat
+runtime.
+
+Jika diberi waktu satu bulan dengan akses ke kluster produksi, hal pertama yang
+akan kami tambahkan adalah distributed tracing (misalnya OpenTelemetry yang
+diekspor ke Jaeger atau Grafana Tempo). Dengan ini, setiap request ke API
+TaskFlow dapat dilacak end-to-end: dari masuk ke ingress, diteruskan ke Pod
+mana, query database apa yang dijalankan, hingga response dikembalikan —
+lengkap dengan trace ID yang bisa dikorelasikan dengan log Kyverno (siapa yang
+mencoba deploy apa) dan riwayat sync ArgoCD (kapan konfigurasi berubah).
+
+Manfaat konkretnya untuk audit:
+Korelasi insiden: jika ada anomali (misalnya latency tiba-tiba naik atau
+error rate melonjak), tim bisa langsung menelusuri apakah itu berkorelasi
+dengan perubahan konfigurasi terakhir yang disetujui Kyverno/ArgoCD.
+Bukti kepatuhan berkelanjutan: berbeda dengan test Kyverno kami yang
+sifatnya snapshot (diuji sekali saat demo), tracing memberi bukti kepatuhan
+yang berjalan terus-menerus, bukan hanya pada saat audit dijadwalkan.
+Deteksi drift di level perilaku, bukan hanya konfigurasi — ArgoCD
+mendeteksi drift pada state (replika, manifest), tapi tidak mendeteksi
+jika sebuah service mulai berperilaku abnormal walau konfigurasinya tetap
+sesuai Git.
+
+Selain tracing, kami juga akan mempertimbangkan integrasi dengan tools seperti
+Falco untuk runtime security monitoring (melengkapi Kyverno yang sifatnya
+preventif di admission time, dengan deteksi di level syscall saat container
+sudah berjalan) — namun ini menjadi prioritas kedua setelah tracing, karena
+tracing memberi fondasi observability yang lebih mendasar untuk kebutuhan audit
+jangka panjang.
