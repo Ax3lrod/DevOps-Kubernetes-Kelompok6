@@ -1,24 +1,17 @@
 #!/bin/bash
 # =============================================================================
-# implementation/scripts/test-kyverno-policies.sh
+# kelompok6-devsecops-future/implementation/script/test-kyverno-policies.sh
 # Dibuat oleh: Anggota 6 (QA & Policy Auditor)
 #
-# Menjalankan apply pada test-illegal-pod.yaml (berisi 3 pod ilegal + 1 legit).
-# kubectl mengirim tiap objek sebagai request terpisah ke admission webhook,
-# jadi log penolakan/persetujuan tiap pod tetap tercatat individual walau
-# di-apply dalam satu file. Tidak butuh dependency tambahan (yq, dst).
-#
-# Cara pakai:
-#   chmod +x implementation/scripts/test-kyverno-policies.sh
-#   ./implementation/scripts/test-kyverno-policies.sh
+# Menjalankan apply pada test-illegal-pod.yaml (berisi skenario ilegal + legit).
 # =============================================================================
 
 set -uo pipefail
 
-MANIFEST="implementation/kyverno/test-illegal-pod.yaml"
-LOG_FILE="evaluation/kyverno-rejection-log.txt"
+MANIFEST="kelompok6-devsecops-future/implementation/kyverno/test-illegal-pod.yaml"
+LOG_FILE="kelompok6-devsecops-future/evaluation/kyverno-rejection-log.txt"
 
-mkdir -p evaluation
+mkdir -p kelompok6-devsecops-future/evaluation
 
 {
   echo "=== Kyverno Policy Enforcement Test Log ==="
@@ -28,18 +21,22 @@ mkdir -p evaluation
   echo "--- kubectl apply output ---"
 } > "$LOG_FILE"
 
-kubectl apply -f "$MANIFEST" 2>&1 | tee -a "$LOG_FILE"
+sudo kubectl apply -f "$MANIFEST" 2>&1 | tee -a "$LOG_FILE"
 
 echo ""
 echo "=== Selesai. Log lengkap tersimpan di $LOG_FILE ==="
-echo "Ekspektasi:"
-echo "  illegal-root-pod      -> DITOLAK (require-non-root)"
-echo "  illegal-no-limits-pod -> DITOLAK (require-resource-limits)"
-echo "  illegal-registry-pod  -> DITOLAK (restrict-image-registry)"
-echo "  legit-test-pod        -> DITERIMA (pod/legit-test-pod created)"
+echo "Ekspektasi Hasil:"
+echo "  [Pod] test-illegal-pod-root-user          -> 🛑 DITOLAK (require-non-root)"
+echo "  [Pod] test-illegal-pod-no-limits          -> 🛑 DITOLAK (require-resource-limits)"
+echo "  [Pod] test-illegal-pod-untrusted-registry -> 🛑 DITOLAK (restrict-image-registry)"
+echo "  [Pod] test-compliant-pod                  -> ✅ DITERIMA (created)"
+echo "  [Deploy] test-illegal-deployment-root     -> 🛑 DITOLAK (require-non-root)"
+echo "  [Deploy] test-compliant-deployment        -> ✅ DITERIMA (created)"
+echo ""
 
-# Cleanup: hapus pod legit yang berhasil dibuat.
-# Pod ilegal TIDAK PERNAH benar-benar tercipta di cluster (ditolak di level
-# admission webhook sebelum disimpan ke etcd), jadi tidak ada yang perlu
-# dihapus untuk ketiganya.
-kubectl delete pod legit-test-pod --ignore-not-found
+# Cleanup: hapus resource legit yang berhasil dibuat agar tidak menuh-menuhin kluster.
+# Resource ilegal TIDAK PERNAH tercipta di cluster, jadi tidak perlu dihapus.
+echo "Membersihkan resource uji coba yang legit..."
+sudo kubectl delete pod test-compliant-pod -n taskflow-prod --ignore-not-found
+sudo kubectl delete deployment test-compliant-deployment -n taskflow-prod --ignore-not-found
+echo "Cleanup selesai!"
