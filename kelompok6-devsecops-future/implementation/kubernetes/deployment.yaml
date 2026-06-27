@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: taskflow-api
-        image: fikriau/taskflow-api-k8s:sha-58f701e
+        image: fikriau/taskflow-api-k8s:sha-f26f6b0
         ports:
         - containerPort: 8080
           name: http
