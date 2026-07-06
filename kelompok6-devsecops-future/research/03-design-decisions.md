@@ -15,8 +15,8 @@ Keputusan desain ini merujuk langsung pada argumen dan hasil eksperimen dari **S
 
 Justifikasi teoretis di atas berhasil kami buktikan secara valid melalui pengujian otomatis menggunakan skrip `simulate-drift1.ps1` pada kluster VPS kami:
 
-1. **Sistem Tradisional (Baseline):** Pemulihan manual (meniru cara lama via Jenkins/SSH) membutuhkan total waktu Mean Time to Remediation (MTTR) sebesar **31.906 detik**. Pada kondisi ini, sistem mengalami _downtime_ yang lama karena harus menunggu intervensi operator manusia untuk menyadari eror dan memicu _apply_ ulang.
-2. **Sistem GitOps Modern (ArgoCD):** Ketika objek deployment `taskflow-api` dihapus secara total dari runtime kluster, kontroler ArgoCD mendeteksi deviasi tersebut secara instan dan mengeksekusi _autonomous healing_ hanya dalam waktu **4.234 detik** tanpa ada intervensi manusia (_zero human intervention_).
+1. **Sistem Tradisional (Baseline):** Pemulihan manual (meniru cara lama via Jenkins/SSH) membutuhkan total waktu Mean Time to Remediation (MTTR) sebesar **31.581 detik**. Pada kondisi ini, sistem mengalami _downtime_ yang lama karena harus menunggu intervensi operator manusia untuk menyadari eror dan memicu _apply_ ulang.
+2. **Sistem GitOps Modern (ArgoCD):** Ketika objek deployment `taskflow-api` dihapus secara total dari runtime kluster, kontroler ArgoCD mendeteksi deviasi tersebut secara instan dan mengeksekusi _autonomous healing_ hanya dalam waktu **2.038 detik** tanpa ada intervensi manusia (_zero human intervention_).
 
 ## 2. Penyelarasan dengan Keamanan Runtime (Triad Domain)
 

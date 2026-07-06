@@ -78,7 +78,7 @@ sequenceDiagram
 ## 📌 BAGIAN 3: EVALUASI BERBASIS DATA (Durasi: 5 Menit)
 
 ### Slide 6: Peningkatan MTTR (Configuration Drift)
-*   **Visual Utama**: **Masukkan Grafik Batang (Bar Chart)** dari 31.5 detik ke 2.03 detik.
+*   **Visual Utama**: **Masukkan Grafik Batang (Bar Chart)** dari 31.58 detik ke 2.04 detik.
 *   **Poin-poin**:
     1.  Baseline (Sistem Lama): **31.581 Detik** (Besar *human error* / *delay*).
     2.  Pasca-Enhancement (ArgoCD): **2.038 Detik** (100% otonom).
