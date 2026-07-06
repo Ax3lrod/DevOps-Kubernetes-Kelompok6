@@ -13,6 +13,8 @@ Pengujian dilakukan secara manual dengan menyimulasikan skenario _Misconfigurati
 | **Waktu Rekonsiliasi Manual (Remedy Time)**   | **31.581 Detik**    | Total durasi dari sistem mati, respon lambat manusia, hingga *apply* Jenkins selesai.|
 | **Intervensi Operator (Human Action)**        | 100% (Mutlak)       | Pemulihan gagal jika engineer tidak menekan tombol *Deploy* di Jenkins.              |
 
+![Bukti Pengukuran Pemulihan Manual](images/recovery-before.png)
+
 ## 🛡️ 2. Pengukuran Kepatuhan Runtime (Tanpa Policy-as-Code)
 
 Tanpa adanya *admission controller* (seperti Kyverno), kluster sepenuhnya mengandalkan integritas kode yang lolos dari CI pipeline. Pengujian injeksi manifes langsung ke API Kubernetes menunjukkan celah fatal:
@@ -22,6 +24,8 @@ Tanpa adanya *admission controller* (seperti Kyverno), kluster sepenuhnya mengan
 | Deploy dengan Privilese Root User                         | Ditolak oleh Cluster  | K8s membuat Pod `runAsUser: 0` tanpa hambatan peringatan apapun.               | **100% ALLOWED** |
 | Deploy tanpa Batasan CPU/Memori                           | Ditolak oleh Cluster  | K8s meloloskan beban tanpa limitasi yang berisiko *resource exhaustion*.       | **100% ALLOWED** |
 | Tarik Image dari Registry Asing (`attacker.io/malware`)   | Ditolak oleh Cluster  | K8s berhasil menarik dan menjalankan image asing yang tidak terverifikasi.     | **100% ALLOWED** |
+
+![Bukti Kepatuhan Runtime Tanpa Policy-as-Code](images/policy-before.png)
 
 ### 🔍 Kesimpulan Evaluasi Kuantitatif
 

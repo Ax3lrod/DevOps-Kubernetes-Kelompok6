@@ -12,6 +12,8 @@ Pengujian dilakukan secara otomatis menggunakan skrip automasi `simulate-drift1.
 | **Waktu Rekonsiliasi Otomatis (Remedy Time)** | **2.038 Detik**              | Durasi dari penghapusan objek hingga kontainer baru kembali berstatus `Running 2/2`. |
 | **Intervensi Operator (Human Action)**        | 0% (Tanpa Sentuhan Manusia)  | Pemulihan murni dieksekusi secara otomatis oleh internal kontroler cluster.          |
 
+![Bukti Pengukuran Pemulihan Otomatis ArgoCD](images/recovery-after.png)
+
 ## 🛡️ 2. Pengukuran Kepatuhan Runtime (Kyverno Policy Enforcement)
 
 Berdasarkan verifikasi audit bersama Anggota 3, pengujian dilakukan dengan mencoba menyisipkan manifes kontainer berbahaya (_illegal workloads_) secara langsung ke cluster produksi:
@@ -24,6 +26,8 @@ Berdasarkan verifikasi audit bersama Anggota 3, pengujian dilakukan dengan menco
 | **Pod** Manifest Resmi Terpercaya (`test-compliant-pod`)                    | Diterima oleh Cluster | `pod/test-compliant-pod created` (atau `unchanged`)                                                                                                                 | **100% ALLOWED** |
 | **Deployment** dengan Privilese Root User (`test-illegal-deployment-root`)  | Ditolak oleh Cluster  | `admission webhook "validate.kyverno.svc-fail" denied: Pod dilarang berjalan sebagai root`                                                                          | **100% BLOCKED** |
 | **Deployment** Manifest Resmi Terpercaya (`test-compliant-deployment`)      | Diterima oleh Cluster | `deployment.apps/test-compliant-deployment created` (atau `unchanged`)                                                                                              | **100% ALLOWED** |
+
+![Bukti Kepatuhan Runtime Kyverno](images/policy-after.png)
 
 ### 🔍 Kesimpulan Evaluasi Kuantitatif
 
